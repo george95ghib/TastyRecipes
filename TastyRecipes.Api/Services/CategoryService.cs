@@ -17,17 +17,19 @@ namespace TastyRecipes.Api.Services
             _dataContext = dataContext;
         }
 
-        public async Task<Category> CreateCategoryAsync(string categoryName)
+        public async Task<bool> CreateCategoryAsync(Category newCategory)
         {
-            var newCategory = new Category
+            var categoryExists = await _dataContext.Categories.FirstOrDefaultAsync(category => category.Name == newCategory.Name);
+
+            if (categoryExists != null)
             {
-                Name = categoryName
-            };
+                return false;
+            }
 
             await _dataContext.Categories.AddAsync(newCategory);
             await _dataContext.SaveChangesAsync();
 
-            return newCategory;
+            return true;
         }
 
         public async Task<List<Category>> GetCategoriesAsync()

@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TastyRecipes.Api.Contracts;
 using TastyRecipes.Api.Contracts.Requests;
+using TastyRecipes.Api.Contracts.Responses;
+using TastyRecipes.Api.Domain;
 using TastyRecipes.Api.Services;
 
 namespace TastyRecipes.Api.Controllers
@@ -12,10 +15,12 @@ namespace TastyRecipes.Api.Controllers
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;
+        private readonly IMapper _mapper;
 
-        public CategoriesController(ICategoryService categoryService)
+        public CategoriesController(ICategoryService categoryService, IMapper mapper)
         {
             _categoryService = categoryService;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -25,7 +30,9 @@ namespace TastyRecipes.Api.Controllers
         [HttpGet(ApiRoutes.Categories.GetAll)]
         public async Task<IActionResult> GetAll()
         {
-            return Ok(await _categoryService.GetCategoriesAsync());
+            var allCategories = await _categoryService.GetCategoriesAsync();
+
+            return Ok(_mapper.Map<List<CategoryResponse>>(allCategories));
         }
 
         /// <summary>
@@ -36,10 +43,16 @@ namespace TastyRecipes.Api.Controllers
         [HttpPost(ApiRoutes.Categories.Create)]
         public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
         {
-            var createdCategory = await _categoryService.CreateCategoryAsync(request.Name);
+            var newCategory = _mapper.Map<Category>(request);
 
-            return Ok(createdCategory);
+            var createdCategory = await _categoryService.CreateCategoryAsync(newCategory);
 
+            if (createdCategory == false)
+            {
+                return BadRequest(new { error = "Unable to create category" });
+            }
+
+            return Ok(_mapper.Map<CategoryResponse>(newCategory));
         }
     }
 }

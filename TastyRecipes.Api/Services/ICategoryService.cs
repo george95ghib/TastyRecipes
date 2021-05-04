@@ -9,6 +9,6 @@ namespace TastyRecipes.Api.Services
     public interface ICategoryService
     {
         Task<List<Category>> GetCategoriesAsync();
-        Task<Category> CreateCategoryAsync(string categoryName);
+        Task<bool> CreateCategoryAsync(Category newCategory);
     }
 }
